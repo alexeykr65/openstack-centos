@@ -1,0 +1,673 @@
+---
+- name: HORIZON>> Configure HORIZON on Centos 7
+  hosts: controllers
+  gather_facts: false
+  
+  tasks:
+    - name: HORIZON>> Add packages for Horizon
+      yum:
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+          - openstack-dashboard
+
+    - name: HORIZON>> Change file /etc/openstack-dashboard/local_settings
+      lineinfile:
+        path: /etc/openstack-dashboard/local_settings
+        regexp: '{{item.From}}'
+        line: '{{item.To}}'
+        state: present  
+      with_items:
+       - { From: '^OPENSTACK_HOST', To: 'OPENSTACK_HOST = "{{controller.name}}"'}
+       - { From: '^ALLOWED_HOSTS', To: 'ALLOWED_HOSTS = ["*"]'}
+      tags:
+        - exp
+
+    - name: HORIZON>> Change file /etc/openstack-dashboard/local_settings
+      lineinfile:
+        path: /etc/openstack-dashboard/local_settings
+        insertafter: 
+        line: WEBROOT = '/dashboard'
+        backup: yes
+        state: present  
+
+
+    # - name: HORIZON>> Change file /etc/openstack-dashboard/local_settings
+    #   lineinfile:
+    #     path: /etc/openstack-dashboard/local_settings
+    #     insertafter: 
+    #     line: |
+    #     'OPENSTACK_API_VERSIONS = {
+    #             "identity": 3,
+    #             "image": 2,
+    #             "volume": 3,}'
+    #     backup: yes
+    #     state: present  
+
+
+
+
+
+
+#     - name: HORIZON>> Grant database user neutron with database neutron
+#       mysql_user:
+#         name: neutron
+#         password: openstack
+#         priv: 'neutron.*:ALL,GRANT'
+#         state: present
+#         host: "{{ item }}"
+#         login_host: "{{ controller.ipv4 }}"        
+#       with_items:
+#         - 'localhost'
+#         - '%'
+
+#     # - name: HORIZON>> Openstack create User  'neutron'
+#     #   shell: |
+#     #     source /root/admin-openrc 
+#     #     openstack user create --domain default --password 'openstack' neutron  
+#     #   register: res_shell
+
+#     # - name: HORIZON>> Show result
+#     #   debug:
+#     #     msg: "{{ res_shell.stdout }}"
+
+#     # - name: HORIZON>> Openstack add user 'neutron' to role admin
+#     #   shell: |
+#     #     source /root/admin-openrc 
+#     #     openstack role add --project service --user neutron admin
+#     #   register: res_shell
+
+#     # - name: HORIZON>> Show result
+#     #   debug:
+#     #     msg: "{{ res_shell.stdout }}"
+
+#     # - name: HORIZON>> Openstack create service name 'neutron'
+#     #   shell: |
+#     #     source /root/admin-openrc 
+#     #     openstack service create --name neutron --description "OpenStack Networking" network
+#     #   register: res_shell
+
+#     # - name: HORIZON>> Show result
+#     #   debug:
+#     #     msg: "{{ res_shell.stdout }}"
+
+#     # - name: HORIZON>> Openstack create API endpoint public http://controller:9696
+#     #   shell: |
+#     #     source /root/admin-openrc 
+#     #     openstack endpoint create --region RegionOne network public http://controller:9696
+#     #   register: res_shell
+
+#     # - name: HORIZON>> Show result
+#     #   debug:
+#     #     msg: "{{ res_shell.stdout }}"
+
+#     # - name: HORIZON>> Openstack create API endpoint internal http://controller:9696
+#     #   shell: |
+#     #     source /root/admin-openrc 
+#     #     openstack endpoint create --region RegionOne network internal http://controller:9696
+#     #   register: res_shell
+
+#     # - name: HORIZON>> Show result
+#     #   debug:
+#     #     msg: "{{ res_shell.stdout }}"
+
+#     # - name: HORIZON>> Openstack create API endpoint admin http://controller:9696
+#     #   shell: |
+#     #     source /root/admin-openrc 
+#     #     openstack endpoint create --region RegionOne network admin http://controller:9696
+#     #   register: res_shell
+
+#     # - name: HORIZON>> Show result
+#     #   debug:
+#     #     msg: "{{ res_shell.stdout }}"
+
+#     - name: HORIZON>> Add packages for Nova
+#       yum:
+#         name: "{{ packages }}"
+#         state: present
+#       vars:
+#         packages:
+#           - openstack-neutron 
+#           - openstack-neutron-ml2
+#           - openstack-neutron-linuxbridge 
+#           - ebtables  
+
+#     - name: HORIZON>> Create file /etc/neutron/neutron.conf 
+#       template:
+#         src: "neutron_conf.j2"
+#         dest: /etc/neutron/neutron.conf
+#         owner: root
+#         group: neutron
+#         mode: '0640'
+#         backup: yes
+
+#     - name: HORIZON>> Create file /etc/neutron/plugins/ml2/ml2_conf.ini 
+#       template:
+#         src: "neutron_ml2_conf.j2"
+#         dest: /etc/neutron/plugins/ml2/ml2_conf.ini
+#         owner: root
+#         group: neutron
+#         mode: '0640'
+#         backup: yes
+
+#     - name: HORIZON>> Create file /etc/neutron/plugins/ml2/linuxbridge_agent.ini
+#       template:
+#         src: "neutron_linuxbridge_agent_conf.j2"
+#         dest: /etc/neutron/plugins/ml2/linuxbridge_agent.ini
+#         owner: root
+#         group: neutron
+#         mode: '0640'
+#         backup: yes
+
+#     - name: HORIZON>> Create file /etc/neutron/l3_agent.ini
+#       template:
+#         src: "neutron_l3_agent_conf.j2"
+#         dest: /etc/neutron/l3_agent.ini
+#         owner: root
+#         group: neutron
+#         mode: '0640'
+#         backup: yes
+
+#     - name: HORIZON>> Create file /etc/neutron/dhcp_agent.ini 
+#       template:
+#         src: "neutron_dhcp_agent_conf.j2"
+#         dest: /etc/neutron/dhcp_agent.ini 
+#         owner: root
+#         group: neutron
+#         mode: '0640'
+#         backup: yes
+
+#     - name: HORIZON>> Create file /etc/neutron/metadata_agent.ini 
+#       template:
+#         src: "neutron_metadata_agent_conf.j2"
+#         dest: /etc/neutron/metadata_agent.ini
+#         owner: root
+#         group: neutron
+#         mode: '0640'
+#         backup: yes
+
+#     - name: HORIZON>> Create a symbolic link ml2_conf.ini
+#       file:
+#         src: /etc/neutron/plugins/ml2/ml2_conf.ini
+#         dest: /etc/neutron/plugin.ini
+#         state: link
+
+#     # - name: HORIZON>> Neutron neutron-db-manage
+#     #   command: 'su -s /bin/sh -c "neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head" neutron '
+#     #   register: ret_val
+
+#     # - name: HORIZON>> Make sure the openstack-nova-api restart
+#     #   systemd:
+#     #     state: restarted
+#     #     name: openstack-nova-api.service
+
+#     - name: HORIZON>> Make sure a Nova services is running
+#       systemd:
+#         name: "{{ item }}"
+#         state: started
+#         enabled: yes
+#       with_items:
+#         - neutron-server.service 
+#         - neutron-linuxbridge-agent.service 
+#         - neutron-dhcp-agent.service 
+#         - neutron-metadata-agent.service
+#         - neutron-l3-agent.service
+
+#     - name: HORIZON>> Verify Neutron
+#       shell: |
+#         source /root/admin-openrc 
+#         openstack extension list --network
+#       register: res_shell
+    
+#     - name: HORIZON>> Show result
+#       debug:
+#         msg: "{{ res_shell.stdout }}"
+
+#     - name: HORIZON>> Verify Neutron
+#       shell: |
+#         source /root/admin-openrc 
+#         openstack network agent list
+#       register: res_shell
+    
+#     - name: HORIZON>> Show result
+#       debug:
+#         msg: "{{ res_shell.stdout }}"
+
+
+#     - name: HORIZON>> Verify Neutron
+#       shell: |
+#         source /root/admin-openrc 
+#         openstack catalog list
+#       register: res_shell
+    
+#     - name: HORIZON>> Show result
+#       debug:
+#         msg: "{{ res_shell.stdout }}"
+
+#     # - name: HORIZON>> nova manage api db_sync
+#     #   command: 'su -s /bin/sh -c "nova-manage api_db sync" nova'
+#     #   register: ret_val
+
+#     # - name: HORIZON>> nova manage cell_v2 map_cell0
+#     #   command: 'su -s /bin/sh -c "nova-manage cell_v2 map_cell0" nova'
+#     #   register: ret_val
+
+#     # - name: HORIZON>> nova manage create cell
+#     #   command: 'su -s /bin/sh -c "nova-manage cell_v2 create_cell --name=cell1 --verbose" nova'
+#     #   register: ret_val
+
+#     # - name: HORIZON>> nova manage db sync
+#     #   command: 'su -s /bin/sh -c "nova-manage db sync" nova'
+#     #   register: ret_val
+
+#     # - name: HORIZON>> Verify nova list
+#     #   shell: |
+#     #     source /root/admin-openrc 
+#     #     su -s /bin/sh -c "nova-manage cell_v2 list_cells" nova
+#     #   register: res_shell
+
+#     # - name: HORIZON>> Show result
+#     #   debug:
+#     #     msg: "{{ res_shell.stdout }}"
+
+#     # - name: HORIZON>> Make sure a Nova services is running
+#     #   systemd:
+#     #     name: "{{ item }}"
+#     #     state: started
+#     #     enabled: yes
+#     #   with_items:
+#     #     - openstack-nova-api.service 
+#     #     - openstack-nova-scheduler.service
+#     #     - openstack-nova-conductor.service
+#     #     - openstack-nova-novncproxy.service
+
+
+
+
+
+
+
+
+
+
+#     # - name: HORIZON>> Verify placement
+#     #   shell: |
+#     #     source /root/admin-openrc 
+#     #     placement-status upgrade check
+#     #   register: res_shell
+    
+#     # - name: HORIZON>> Show result
+#     #   debug:
+#     #     msg: "{{ res_shell.stdout }}"
+
+#     # - name: HORIZON>> Show openstack catalog current
+#     #   shell: |
+#     #     source /root/admin-openrc 
+#     #     openstack catalog list
+#     #   register: res_shell
+    
+#     # - name: HORIZON>> Show result
+#     #   debug:
+#     #     msg: "{{ res_shell.stdout }}"
+
+#     # - name: HORIZON>> Make sure the httpd restart
+#     #   systemd:
+#     #     state: restarted
+#     #     name: openstack-glance-api
+
+
+#     # - name: HORIZON>> Make sure the openstack-glance-api is running
+#     #   systemd:
+#     #     state: started
+#     #     name: openstack-glance-api
+
+#     # - name: HORIZON>> Download cirros 0.4.0
+#     #   get_url:
+#     #     url: http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img
+#     #     dest: /root/cirros-0.4.0-x86_64-disk.img
+#     #     mode: '0644'
+
+#     # - name: HORIZON>> Verify to create image cirros 0.4.0
+#     #   shell: |
+#     #     source /root/admin-openrc 
+#     #     glance image-create --name "cirros" \
+#     #       --file /root/cirros-0.4.0-x86_64-disk.img \
+#     #       --disk-format qcow2 --container-format bare \
+#     #       --visibility public
+#     #   register: res_shell
+    
+#     # - name: HORIZON>> Show result
+#     #   debug:
+#     #     msg: "{{ res_shell.stdout }}"
+
+#     # - name: HORIZON>> Verify image list
+#     #   shell: |
+#     #     source /root/admin-openrc 
+#     #     openstack image list
+#     #   register: res_shell
+    
+#     # - name: HORIZON>> Show result
+#     #   debug:
+#     #     msg: "{{ res_shell.stdout }}"
+
+
+#     # - name: HORIZON>> Show openstack catalog current
+#     #   shell: |
+#     #     source /root/admin-openrc 
+#     #     openstack catalog list
+#     #   register: res_shell
+    
+#     # - name: HORIZON>> Show result
+#     #   debug:
+#     #     msg: "{{ res_shell.stdout }}"
+
+
+
+
+
+
+# #     - name: HORIZON>> Add packages for Identity
+# #       yum:
+# #         name: "{{ packages }}"
+# #         state: present
+# #       vars:
+# #         packages:
+# #           - openstack-keystone 
+# #           - httpd
+# #           - mod_wsgi
+
+# #     - name: HORIZON>> Create file /etc/keystone/keystone.conf
+# #       template:
+# #         src: "keystone_conf.j2"
+# #         dest: /etc/keystone/keystone.conf
+# #         owner: root
+# #         group: root
+# #         mode: '0644'
+# #         backup: yes
+
+# #     - name: HORIZON>> keystone manage db_sync
+# #       command: 'su -s /bin/sh -c "keystone-manage db_sync" keystone'
+# #       register: ret_val
+
+# #     - name: HORIZON>> keystone fernet_setup 
+# #       command: /usr/bin/keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
+
+#     - name: HORIZON>> keystone credential_setup
+#       command: /usr/bin/keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
+
+#     - name: HORIZON>> bootstrap
+#       command: |
+#           /usr/bin/keystone-manage bootstrap --bootstrap-password openstack \
+#             --bootstrap-admin-url http://controller:5000/v3/ \
+#             --bootstrap-internal-url http://controller:5000/v3/ \
+#             --bootstrap-public-url http://controller:5000/v3/ \
+#             --bootstrap-region-id RegionOne 
+#       register: ret_val
+
+#     - name: HORIZON>> Change file /etc/httpd/conf/httpd.conf
+#       lineinfile:
+#         path: /etc/httpd/conf/httpd.conf
+#         regexp: '#ServerName www.example.com'
+#         line: "ServerName controller"
+#         state: present  
+
+#     - name: HORIZON>> Create a symbolic link wsgi-keystone.conf in /etc/httpd/conf.d/
+#       file:
+#         src: /usr/share/keystone/wsgi-keystone.conf
+#         dest: /etc/httpd/conf.d/wsgi-keystone.conf
+#         state: link
+
+#     - name: HORIZON>> Make sure the httpd is running
+#       systemd:
+#         state: started
+#         name: httpd
+
+#     - name: HORIZON>> Create file admin-openrc
+#       template:
+#         src: "admin_openrc.j2"
+#         dest: /root/admin-openrc
+#         owner: root
+#         group: root
+#         mode: '0644'
+
+#     # - name: HORIZON>> Openstack create Domain 'example'
+#     #   shell: |
+#     #     source /root/admin-openrc 
+#     #     openstack domain create --description 'An Example Domain' example
+#     #   register: res_shell
+
+#     # - name: HORIZON>> Show result
+#     #   debug:
+#     #     msg: "{{ res_shell.stdout }}"
+
+
+#     # - name: HORIZON>> Openstack create project 'service'
+#     #   shell: |
+#     #     source /root/admin-openrc 
+#     #     openstack project create --domain default --description "Service Project" service
+#     #   register: res_shell
+
+#     # - name: HORIZON>> Show result
+#     #   debug:
+#     #     msg: "{{ res_shell.stdout }}"
+
+#     # - name: HORIZON>> Openstack create project 'myproject'
+#     #   shell: |
+#     #     source /root/admin-openrc 
+#     #     openstack project create --domain default  --description "Demo Project" myproject
+#     #   register: res_shell
+
+#     # - name: HORIZON>> Show result
+#     #   debug:
+#     #     msg: "{{ res_shell.stdout }}"
+
+#     # - name: HORIZON>> Openstack create user 'myuser'
+#     #   shell: |
+#     #     source /root/admin-openrc 
+#     #     openstack user create --domain default --password openstack  myuser
+#     #   register: res_shell
+
+#     # - name: HORIZON>> Show result
+#     #   debug:
+#     #     msg: "{{ res_shell.stdout }}"
+
+#     # - name: HORIZON>> Openstack create role 'myrole'
+#     #   shell: |
+#     #     source /root/admin-openrc 
+#     #     openstack role create myrole
+#     #   register: res_shell
+
+#     # - name: HORIZON>> Show result
+#     #   debug:
+#     #     msg: "{{ res_shell.stdout }}"
+
+#     # - name: HORIZON>> Openstack add user 'myuser' to role 'myrole'
+#     #   shell: |
+#     #     source /root/admin-openrc 
+#     #     openstack role add --project myproject --user myuser myrole
+#     #   register: res_shell
+
+#     # - name: HORIZON>> Show result
+#     #   debug:
+#     #     msg: "{{ res_shell.stdout }}"
+
+
+#     - name: HORIZON>> Verify identity to get token issue for 'admin'
+#       shell: |
+#         source /root/admin-openrc 
+#         openstack --os-auth-url http://controller:5000/v3 \
+#           --os-project-domain-name Default --os-user-domain-name Default \
+#           --os-project-name admin --os-username admin token issue
+#       register: res_shell
+
+#     - name: HORIZON>> Show result
+#       debug:
+#         msg: "{{ res_shell.stdout }}"
+
+#     - name: HORIZON>> Verify identity to get token issue for 'myuser'
+#       shell: |
+#         source /root/admin-openrc 
+#         openstack --os-auth-url http://controller:5000/v3 \
+#           --os-project-domain-name Default --os-user-domain-name Default \
+#           --os-project-name myproject --os-username myuser token issue
+#       register: res_shell
+    
+#     - name: HORIZON>> Show result
+#       debug:
+#         msg: "{{ res_shell.stdout }}"
+
+#     - name: HORIZON>> Verify identity to get token issue 
+#       shell: |
+#         source /root/admin-openrc 
+#         openstack token issue
+#       register: res_shell
+    
+#     - name: HORIZON>> Show result
+#       debug:
+#         msg: "{{ res_shell.stdout }}"
+
+
+
+
+
+
+
+
+# # /usr/bin/keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
+# # keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
+
+# # keystone-manage bootstrap --bootstrap-password openstack \
+# #   --bootstrap-admin-url http://controller:5000/v3/ \
+# #   --bootstrap-internal-url http://controller:5000/v3/ \
+# #   --bootstrap-public-url http://controller:5000/v3/ \
+# #   --bootstrap-region-id RegionOne
+
+
+
+
+# #connection = <None>
+    
+#         # - name: HORIZON>> Clear old string in /etc/hosts
+#     #   lineinfile:
+#     #     path: /etc/sysconfig/memcached
+#     #     state: absent
+#     #     regexp: ""
+#     #   with_items: " {{ hosts_list }}"
+
+    # - name: HORIZON>> Enable services Memcached and start
+    #   systemd:
+    #     name: memcached
+    #     enabled: yes
+    #     state: started
+
+
+# yum install memcached python-memcached
+
+# /etc/sysconfig/memcached
+
+# add OPTIONS="-l 127.0.0.1,::1,controller"
+
+# systemctl enable memcached.service
+# systemctl start memcached.service
+
+
+    # - name: HORIZON>> Create file /etc/my.cnf.d/openstack.cnf MariaDB
+    #   template:
+    #     src: "mariadb-openstack.j2"
+    #     dest: /etc/my.cnf.d/openstack.cnf
+    #     owner: root
+    #     group: root
+    #     mode: '0644'
+
+
+
+
+#        validate: '/usr/sbin/squid -k check'
+#        backup: yes
+
+    # - name: HORIZON>> populate service facts
+    #   service_facts:
+
+    # # - name: HORIZON>> Show populate service facts
+    # #   debug:
+    # #     msg: "{{ansible_facts.services}}"
+
+    # - name: HORIZON>> Make sure a some service is stoped
+    #   systemd:
+    #     state: stopped
+    #     name: "{{ item }}"
+    #   when: item in ansible_facts.services
+    #   with_items:
+    #     - "firewalld.service"
+    #     - "NetworkManager.service"
+
+    # - name: HORIZON>> remove the NetworkManager 
+    #   yum:
+    #     name: NetworkManager
+    #     state: absent    
+      
+    # - name: HORIZON>> Make sure the some services is running
+    #   systemd:
+    #     state: started
+    #     name: "{{ item }}"
+    #   with_items:
+    #     - "network"
+    #     - "chronyd"
+
+    # - name: HORIZON>> Disable SELinux 
+    #   become: yes
+    #   replace:
+    #     path: /etc/selinux/config
+    #     regexp: '^SELINUX=.*'
+    #     replace: 'SELINUX=disabled'
+
+    # - name: HORIZON>> Change hostname on Linux
+    #   hostname:
+    #     name: "{{ inventory_hostname | lower }}"
+
+    # - name: HORIZON>> Clear old string in /etc/hosts
+    #   lineinfile:
+    #     path: /etc/hosts
+    #     state: absent
+    #     regexp: "{{ item.ipv4 }}"
+    #   with_items: " {{ hosts_list }}"
+
+    # - name: HORIZON>> Add strings to /etc/hosts
+    #   lineinfile:
+    #     path: /etc/hosts
+    #     state: present
+    #     line: "{{ item.ipv4 }}  {{ item.name }}"
+    #   with_items: " {{ hosts_list }}"
+
+
+
+    # - name: HORIZON>> Add strings to /etc/hosts
+    #   lineinfile:
+    #     path: /etc/hosts
+    #     state: present
+    #     line: "{{ ansible_ssh_host }} {{ inventory_hostname | lower }}"
+
+
+#  echo "192.168.180.25 controller">>/etc/hosts
+
+#      ansible_ssh_host
+
+    # - name: HORIZON>> Disable SELinux 
+    #   command: sed -i 's/^SELINUX=.*/SELINUX=disabled/g' /etc/selinux/config
+
+
+    # - name: HORIZON>> Reboot machine
+    #   reboot:  
+ 
+# hostnamectl set-hostname controller --static
+# echo "10.121.1.20 controller">>/etc/hosts
+# echo "10.121.1.26 compute1">>/etc/hosts
+
+
+# - name: HORIZON>> large shell script
+#   shell: "{{ lookup('template', 'large_script.j2') }}"
+#   args:
+#     executable: /bin/bash
+#   register: large_script_result
+

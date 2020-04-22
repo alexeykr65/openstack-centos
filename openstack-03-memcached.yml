@@ -1,0 +1,39 @@
+---
+- name: MEMCACHED>> Configure Memcached on Centos 7
+  hosts: controllers
+  gather_facts: false
+  
+  tasks:
+
+    - name: MEMCACHED>> Add packages
+      yum:
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+          - memcached 
+          - python-memcached
+
+    - name: MEMCACHED>> Change Listen parameter /etc/sysconfig/memcached
+      lineinfile:
+        path: /etc/sysconfig/memcached
+        state: present
+        regexp: 'OPTIONS='
+        line: 'OPTIONS="-l 127.0.0.1,::1,{{ inventory_hostname }}"'
+
+    - name: MEMCACHED>> Enable services Memcached and start
+      systemd:
+        name: memcached
+        enabled: yes
+        state: started
+
+
+# yum install memcached python-memcached
+
+# /etc/sysconfig/memcached
+
+# add OPTIONS="-l 127.0.0.1,::1,controller"
+
+# systemctl enable memcached.service
+# systemctl start memcached.service
+

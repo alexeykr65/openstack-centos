@@ -1,0 +1,30 @@
+---
+- name: RABBITMQ>> Configure RabbitMQ on Centos 7
+  hosts: controllers
+  gather_facts: false
+  
+  tasks:
+
+    - name: RABBITMQ>> Add packages
+      yum:
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+          - rabbitmq-server
+
+    - name: RABBITMQ>> Enable services RabbitMQ and start
+      systemd:
+        name: rabbitmq-server
+        enabled: yes
+        state: started
+
+    - name: RABBITMQ>> Add user for rabbitmq-server
+      command:
+        cmd: "/usr/sbin/rabbitmqctl add_user openstack {{ RABBIT_PASS }}"
+
+    - name: RABBITMQ>> Add permission for user rabbitmq-server
+      command:
+        cmd: '/usr/sbin/rabbitmqctl set_permissions openstack "." "." ".*"'
+
+
