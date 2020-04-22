@@ -1,0 +1,21 @@
+---
+openstack_roles:
+  - netnode
+  - compute
+  - cinder
+  - storage
+  - controller  
+
+neutron_conf:
+  core_plugin: ml2
+  service_plugins: router
+
+ovs_conf:
+  bridge_mappings: physnet1:br-ex
+  local_ip: 10.123.1.20
+
+cinder_conf:
+  my_ip: 10.121.1.20
+
+nova_conf:
+  my_ip: 10.121.1.20  
