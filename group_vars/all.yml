@@ -49,7 +49,8 @@ NEUTRON_DBPASS: openstack
 NEUTRON_PASS: openstack
 CINDER_DBPASS: openstack
 CINDER_PASS: openstack
-
+HEAT_DBPASS: openstack
+HEAT_PASS: openstack
 
 
 DOMAIN_CREATE: example

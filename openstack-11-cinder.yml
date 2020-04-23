@@ -224,5 +224,5 @@
       debug:
         msg: "{{ res_shell.stdout }}"
 
-    - name: END REBOOT >> Reboot machine
-      reboot:  
+    # - name: END REBOOT >> Reboot machine
+    #   reboot:  

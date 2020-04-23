@@ -85,10 +85,18 @@
         lstrip_blocks: True
       delegate_to: localhost
 
-    - name: GLANCE>> Create file glance-api.conf 
+    - name: GLANCE Common>> Create file glance-api.conf 
       template:
         src: "glance_conf.j2"
         dest: "./configs/{{inventory_hostname}}_glance-api.conf"
+        trim_blocks: True
+        lstrip_blocks: True
+      delegate_to: localhost
+
+    - name: HEAT Common>> Create file heat.conf
+      template:
+        src: "heat_conf.j2"
+        dest: "./configs/{{inventory_hostname}}_heat.conf"
         trim_blocks: True
         lstrip_blocks: True
       delegate_to: localhost
